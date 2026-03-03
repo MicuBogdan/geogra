@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCX Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 2px solid #e0e8ff;
+        }
+
+        .upload-section h2 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone.dragover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .drop-zone p {
+            color: #666;
+            margin: 0;
+        }
+
+        .or-text {
+            font-size: 12px;
+            color: #999;
+            margin: 10px 0 !important;
+        }
+
+        .upload-btn {
+            margin-top: 10px;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #5568d3;
+        }
+
+        .file-list {
+            background: white;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-name {
+            flex: 1;
+            color: #333;
+            word-break: break-all;
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background: #ff5252;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 12px 28px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .file-result {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .match-count {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .matches-list {
+            margin-top: 12px;
+        }
+
+        .match-item {
+            background: white;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            border-left: 2px solid #ffc107;
+        }
+
+        .match-line {
+            color: #667eea;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .match-text {
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .highlight {
+            background-color: #ffffcc;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .stats {
+            background: #e3f2fd;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #1976d2;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            padding: 20px;
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            background: white;
+        }
+
+        .modal-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .document-viewer {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .document-viewer .highlight {
+            background-color: #ffffcc;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .match-item.clickable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .match-item.clickable:hover {
+            background: #f0f4ff;
+            border-left-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 DOCX Search Engine</h1>
+        <p class="subtitle">Cauta in fisierele docx din folder</p>
+
+    <div class="info-box">
+            ℹ️ Cautarea ignora diacriticele - poti cauta "Romania" si va gasii si "România"
+        </div>
+
+        <div class="upload-section">
+            <h2>📤 Upload Fisiere DOCX</h2>
+            <div class="drop-zone" id="dropZone">
+                <p>🗂️ Drag & drop fisierele DOCX aici</p>
+                <p class="or-text">sau</p>
+                <input type="file" id="fileInput" multiple accept=".docx" style="display: none;">
+                <button onclick="document.getElementById('fileInput').click()" class="upload-btn">
+                    Alege fisiere
+                </button>
+            </div>
+            <div id="fileList" class="file-list"></div>
+        </div>
+
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Introdu textul pe care vrei sa il cauti..." 
+                autocomplete="off"
+            >
+            <button onclick="performSearch()">
+                🔍 Cauta
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Se cauta...</p>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <p class="no-results">Introdu un text si apasa "Cauta" pentru a incepe.</p>
+        </div>
+    </div>
+
+    <!-- Document Viewer Modal -->
+    <div class="modal" id="documentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Document Viewer</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="document-viewer" id="documentViewer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loading = document.getElementById('loading');
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+
+        // Load files on page load
+        loadFiles();
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        async function handleFiles(files) {
+            for (let file of files) {
+                if (file.name.endsWith('.docx')) {
+                    await uploadFile(file);
+                }
+            }
+            fileInput.value = '';
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    loadFiles();
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+            }
+        }
+
+        async function loadFiles() {
+            try {
+                const response = await fetch('/api/files');
+                const data = await response.json();
+                displayFiles(data.files);
+            } catch (error) {
+                console.error('Error loading files:', error);
+            }
+        }
+
+        function displayFiles(files) {
+            if (files.length === 0) {
+                fileList.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Nu ai inca fisiere incarcate</div>';
+                return;
+            }
+
+            fileList.innerHTML = files.map(file => `
+                <div class="file-item">
+                    <span class="file-name">📄 ${escapeHtml(file)}</span>
+                    <button class="delete-btn" onclick="deleteFile('${escapeHtml(file)}')">Sterge</button>
+                </div>
+            `).join('');
+        }
+
+        async function deleteFile(fileName) {
+            if (confirm('Esti sigur ca vrei sa stergi ' + fileName + '?')) {
+                try {
+                    const response = await fetch('/api/files/' + encodeURIComponent(fileName), {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        loadFiles();
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                }
+            }
+        }
+
+        // Allow search on Enter key
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+
+            if (!query) {
+                resultsContainer.innerHTML = '<p class="no-results">Introdu un text pentru a cauta.</p>';
+                return;
+            }
+
+            loading.style.display = 'block';
+            resultsContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+                loading.style.display = 'none';
+                displayResults(data, query);
+            } catch (error) {
+                loading.style.display = 'none';
+                resultsContainer.innerHTML = '<p class="no-results">❌ Eroare la cautare: ' + error.message + '</p>';
+            }
+        }
+
+        function highlightText(text, query) {
+            // Remove diacritics for comparison
+            const removeDiacritics = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const normalizedText = removeDiacritics(text).toLowerCase();
+            const normalizedQuery = removeDiacritics(query).toLowerCase();
+            
+            if (!normalizedText.includes(normalizedQuery)) {
+                return text;
+            }
+
+            // Find all occurrences and highlight them
+            const parts = [];
+            let lastIndex = 0;
+            let index = 0;
+
+            while (index <= text.length) {
+                const substr = text.substring(index);
+                const normalizedSubstr = removeDiacritics(substr).toLowerCase();
+                const foundIndex = normalizedSubstr.indexOf(normalizedQuery);
+
+                if (foundIndex === -1) {
+                    parts.push(text.substring(lastIndex));
+                    break;
+                }
+
+                parts.push(text.substring(lastIndex, index + foundIndex));
+                parts.push('<mark class="highlight">' + text.substring(index + foundIndex, index + foundIndex + query.length) + '</mark>');
+                
+                lastIndex = index + foundIndex + query.length;
+                index = lastIndex;
+            }
+
+            return parts.join('');
+        }
+
+        function displayResults(data, query) {
+            const { results, totalFiles, filesWithMatches } = data;
+
+            if (filesWithMatches === 0) {
+                resultsContainer.innerHTML = `
+                    <p class="no-results">
+                        ❌ Niciun rezultat gasit pentru "<strong>${escapeHtml(query)}</strong>" in ${totalFiles} fisier(e).
+                    </p>
+                `;
+                return;
+            }
+
+            let html = '';
+            let totalMatches = 0;
+
+            Object.keys(results).forEach(fileName => {
+                const fileData = results[fileName];
+                totalMatches += fileData.matchCount;
+
+                html += `
+                    <div class="file-result">
+                        <div class="file-name">
+                            📁 ${escapeHtml(fileName)}
+                            <span class="match-count">${fileData.matchCount} match-uri</span>
+                        </div>
+                        <div class="matches-list">
+                `;
+
+                fileData.matches.forEach((match, index) => {
+                    html += `
+                        <div class="match-item clickable" onclick="viewDocument('${escapeHtml(fileName)}', '${escapeHtml(query)}')">
+                            <span class="match-line">Linia ${match.lineNumber}:</span>
+                            <span class="match-text">${highlightText(escapeHtml(match.text), query)}</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="stats">
+                    ✅ Gasit <strong>${totalMatches}</strong> coincidenta(e) in <strong>${filesWithMatches}</strong> din <strong>${totalFiles}</strong> fisier(e)
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function viewDocument(fileName, query) {
+            try {
+                const response = await fetch('/api/file/' + encodeURIComponent(fileName));
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert('Error loading document: ' + data.error);
+                    return;
+                }
+                
+                displayDocument(data.fileName, data.content, query);
+                openModal();
+            } catch (error) {
+                alert('Error loading document: ' + error.message);
+            }
+        }
+
+        function displayDocument(fileName, content, highlightQuery) {
+            const modal = document.getElementById('documentModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const documentViewer = document.getElementById('documentViewer');
+            
+            modalTitle.textContent = '📄 ' + escapeHtml(fileName);
+            
+            // Highlight the search query in the document
+            const highlightedContent = highlightInDocument(content, highlightQuery);
+            documentViewer.innerHTML = highlightedContent;
+        }
+
+        function highlightInDocument(text, query) {
+            const removeDiacritics = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const normalizedText = removeDiacritics(text).toLowerCase();
+            const normalizedQuery = removeDiacritics(query).toLowerCase();
+            
+            if (!normalizedText.includes(normalizedQuery)) {
+                return escapeHtml(text);
+            }
+
+            // Split text into parts and highlight matches
+            const parts = [];
+            let lastIndex = 0;
+            let searchIndex = 0;
+
+            while (searchIndex < text.length) {
+                const substr = text.substring(searchIndex).toLowerCase();
+                const normalizedSubstr = removeDiacritics(substr);
+                const foundIndex = normalizedSubstr.indexOf(normalizedQuery);
+
+                if (foundIndex === -1) {
+                    parts.push(escapeHtml(text.substring(lastIndex)));
+                    break;
+                }
+
+                const actualIndex = searchIndex + foundIndex;
+                parts.push(escapeHtml(text.substring(lastIndex, actualIndex)));
+                parts.push('<mark class="highlight">' + escapeHtml(text.substring(actualIndex, actualIndex + query.length)) + '</mark>');
+                
+                lastIndex = actualIndex + query.length;
+                searchIndex = lastIndex;
+            }
+
+            return parts.join('');
+        }
+
+        function openModal() {
+            document.getElementById('documentModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('documentModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('documentModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
