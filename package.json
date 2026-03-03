@@ -5,6 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
+    "build:docs": "node -e \"const fs=require('fs'); const path=require('path'); const mammoth=require('mammoth'); (async()=>{ const dir=process.cwd(); const files=fs.readdirSync(dir).filter(f=>f.toLowerCase().endsWith('.docx')).sort(); const docs=[]; for(const file of files){ const result=await mammoth.extractRawText({path:path.join(dir,file)}); docs.push({fileName:file, content:result.value||''}); } fs.writeFileSync(path.join(dir,'documents.json'), JSON.stringify({generatedAt:new Date().toISOString(), documents:docs}, null, 2)); console.log('Generated documents.json with', docs.length, 'documents'); })().catch(err=>{ console.error(err); process.exit(1); });\"",
     "start": "node server.js",
     "dev": "node server.js"
   },
