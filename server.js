@@ -8,16 +8,17 @@ import { fileURLToPath } from 'url';
 
 const app = express();
 const PORT = 3000;
+const isVercel = Boolean(process.env.VERCEL);
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create uploads folder if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
+// Create uploads folder in a writable location
+// - Local/dev: project/uploads
+// - Vercel: /tmp/uploads (ephemeral but writable)
+const uploadsDir = isVercel ? '/tmp/uploads' : path.join(__dirname, 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
 
 // Setup multer for file uploads
 const storage = multer.diskStorage({
