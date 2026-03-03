@@ -45,6 +45,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Function to remove diacritics
 function removeDiacritics(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -170,7 +174,11 @@ app.post('/api/search', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`\n📄 Document Search Server running at http://localhost:${PORT}`);
-  console.log(`\n🔍 Open your browser and use the search interface to query your DOCX files`);
-});
+if (!isVercel) {
+  app.listen(PORT, () => {
+    console.log(`\n📄 Document Search Server running at http://localhost:${PORT}`);
+    console.log(`\n🔍 Open your browser and use the search interface to query your DOCX files`);
+  });
+}
+
+export default app;
